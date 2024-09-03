@@ -1,303 +1,259 @@
-window.onload = function() 
-{	 
-     var canvasWidth = 800;
-     var canvasHeight = 500;
-	 var BlockSize = 30 ;  
-	 var ctx;
-	 var delay=100;   
-	
-	 var snakee; 
-	 var applee; 
-	 var widthInBlocks = canvasWidth/BlockSize;
-	 var heightInBlocks = canvasHeight/BlockSize;
-	 var score;
-	 var timeout;
-	 
-	 init ();  
-	 function init() 
-	 {
-		 var canvas = document.createElement('canvas'); 
-		 canvas.width = canvasWidth ;
-		 canvas.height = canvasHeight;
-		 canvas.style.border = "30px solid gray";
-		 canvas.style.margin = "50px auto"; 
-		 canvas.style.display = "block";
-		 canvas.style.backgroundColor = "#ddd";
-		 document.body.appendChild(canvas); 
-		 
-		  ctx = canvas.getContext('2d'); 
-		  snakee = new snake ([[6,4],[5,4],[4,4]], "right"); 
-		  applee = new Apple ([10,10]);
-		  score= 0;
-		  refreshCanvas(); 
-			
-	}
-	
-	 function refreshCanvas()
-	{
-		
-		 snakee.advance(); 
-			 if (snakee.checkCollision ())
-				 {
-					 gameOver();
-				 }
-			else
-				 {
-					 
-					if (snakee.isEatingApple(applee))
-					{	
-						score++;
-						snakee.ateApple = true;
-						do
-						{
-							applee.setNewPosition();
-						}
-						while (applee.isOnSnake(snakee))
-						
-					}
-					 ctx.clearRect(0,0,canvasWidth,canvasHeight);
-					 // ctx.fillStyle = "#ff0000"; // pour donner une couleur au graphique en question
-					 // ctx.fillRect(xCoord,yCoord,100,50); // pour choisire le type de formes de l'ensemble carrer ou autre 
-					 drawScore();
-					 snakee.draw();
-					 applee.draw();
-					 timeout = setTimeout (refreshCanvas,delay ); // cela permet de raffraichir a chaque seconde sinon il ne bouge pas 
-				 }	
-	}
-	
-	function gameOver ()
-	{
-		ctx.save();
-		ctx.font = "bold 70px sans-serif";
-		ctx.fillStyle= "#000";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.strokeStyle = "White";
-		ctx.lineWidth = 5 ; 
-		var centreX = canvasWidth /2;
-		var centreY = canvasHeight /2;
-		ctx.strokeText("Game Over", centreX , centreY-180);
-		ctx.fillText("Game Over", centreX, centreY-180);
-		ctx.font = "bold 30px sans-serif";
-		ctx.strokeText("Appuyer sur la touche Espace pour rejouer", centreX , centreY-120 ) ;
-		ctx.fillText("Appuyer sur la touche Espace pour rejouer", centreX , centreY-120) ;
-		ctx.restore();
-		
-	}
-	function restart () 
-	{
-		 snakee = new snake ([[6,4],[5,4],[4,4]], "right"); // ce sont les coordonnes en x et y
-		 applee = new Apple ([10,10]);
-		 score= 0;
-		 clearTimeout(timeout);
-		 refreshCanvas(); 
-		 
-	}
-	
-	function drawScore ()
-	{
-		ctx.save();
-		ctx.font = "bold 200px sans-serif";
-		ctx.fillStyle= "gray";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		var centreX = canvasWidth /2;
-		var centreY = canvasHeight /2;
-		ctx.fillText(score.toString() , centreX , centreY) ;
-		ctx.restore();
-		
-		
-	}
-	
-	function drawBlock(ctx,position)
-	{
-		var x = position [0] * BlockSize;
-		var y = position [1] * BlockSize;
-		ctx.fillRect(x,y,BlockSize,BlockSize);
-			
-	}
-	
-	function snake(body,direction)
-	{
-		this.body = body;
-		this.direction = direction;
-		this.ateApple = false;
-		this.draw = function()
-		{
-			ctx.save(); 
-			ctx.fillStyle = "#0a77f5";
-			for (var i = 0; i < this.body.length; i++) 	
-				 
-				 {
-					 drawBlock(ctx, this.body[i]); 
-				 }
-				 ctx.restore(); 
-		};
-		this.advance = function()
-		{
-			var nextposition = this.body[0].slice(); 
-			switch (this.direction)
-			{
-				case "left":
-					nextposition[0] -= 1;
-					break;
-				case "right":
-					nextposition[0] += 1;
-					break;
-				case "down":
-					nextposition[1] += 1;
-					break;
-				case "up":
-					nextposition[1] -= 1;
-					break;
-				default:
-					throw("invalid direction "); 
-					
-			}
-			this.body.unshift(nextposition); 
-		     if (!this.ateApple) 
-				this.body.pop();
-				else
-					this.ateApple = false;
-		};
-		 
-		this.setDirection = function(newDirection)  
-		{
-			 var allowedDirections ; 
-			 switch (this.direction)
-			{
-				case "left":
-				case "right":
-					allowedDirections = ["up","down"];
-					break;
-				case "down":
-				case "up":
-					allowedDirections = ["left","right"];
-					break;
-				default:
-					throw("invalid direction");
-			}
-			
-			if (allowedDirections.indexOf (newDirection) > -1)
-			{
-				this.direction = newDirection;
-			}
-			
-		};  
-		this.checkCollision = function() 
-		{
-			 var wallCollision = false;
-			 var snakeCollision = false ;
-			 var head = this.body[0]; 
-			 var rest = this.body.slice(1); 
-			 var snakeX = head[0];
-			 var snakeY = head[1];
-			 var minX = 0; 
-			 var minY = 0;
-			 var maxX = 0;
-			 var maxY = 0;
-			 var maxX = widthInBlocks - 1; 
-			 var maxY = heightInBlocks - 1;
-			 var isNotBetweenHorizontalWalls = snakeX < minX || snakeX > maxX; 
-			 var isNotBetweenVerticalWalls = snakeY < minY || snakeY > maxY;  
-			 
-			     if (isNotBetweenHorizontalWalls || isNotBetweenVerticalWalls)
-					 {
-						 wallCollision = true; 
-					 }
-				for ( var i = 0; i < rest.length ; i++)
-				{
-					if (snakeX === rest[i][0] && snakeY === rest[i][1])
-					{
-						snakeCollision = true; 
-					}
-					
-				}
-				return  wallCollision || snakeCollision;
-			 
-		};
-		
-		this.isEatingApple = function(appleToEat)
-		{
-			var head = this.body[0]; 
-			if (head [0] === appleToEat.position[0] && head [1] === appleToEat.position[1])
-			{
-				return true;
-			}
-			else
-				return false;
-		};
-		
-		
-	}
-	function Apple(position)
-	{
-		this.position = position;
-		this.draw = function()
-		{
-			ctx.save();  
-			ctx.fillStyle = "#33cc33";
-			ctx.beginPath();
-			var radius = BlockSize/2;
-			var x = this.position[0]*BlockSize + radius;
-			var y = this.position[1]*BlockSize + radius;
-			ctx.arc(x,y, radius, 0, Math.PI*2,true ); 
-			ctx.fill();
-			ctx.restore();
-		};
-		this.setNewPosition = function()
-		{
-			 
-			 var newX = Math.round (Math.random() * (widthInBlocks -1)); 
-			 var newY = Math.round (Math.random() * (heightInBlocks -1)); 
-			 this.position = [newX, newY];
-		};
-		this.isOnSnake = function ( snakeToCheck) 
-		{
-			var isOnSnake = false;
-			
-			for  ( var i = 0; i < snakeToCheck.body.length; i++)
-			{
-					if (this.position[0] === snakeToCheck.body[i][0] && this.position[1] === snakeToCheck.body[i][1])
-					{
-						isOnSnake = true;
-						
-						
-					}
-			}
-			return isOnSnake;
-			
-		};
-		
-	}
+window.onload = function() {
+    var largeurCanvas = 800;
+    var hauteurCanvas = 500;
+    var tailleBloc = 30;
+    var ctx;
+    var delai = 100;
+    var serpent;
+    var pomme;
+    var largeurEnBlocs = largeurCanvas / tailleBloc;
+    var hauteurEnBlocs = hauteurCanvas / tailleBloc;
+    var score;
+    var timeout;
+    var jeuDemarre = false;
 
-		document.onkeydown = function handleKeyDown (e) 
-		{
-			var key = e.keyCode; 
-			var newDirection;
-			switch(key)
-			{
-				case 37: 
-					newDirection = "left";
-					break;
-				case 38:
-					newDirection = "up";
-					break;
-				case 39:
-					newDirection = "right";
-					break;
-				case 40: 
-					newDirection = "down";
-					break ;
-					case 32: 
-					restart ();
-					return;
-				default:
-					return;  
-					
-			}
-			snakee.setDirection(newDirection);
-			
-		}
- }
-	 
+    function init() {
+        var canvas = document.createElement('canvas');
+        canvas.width = largeurCanvas;
+        canvas.height = hauteurCanvas;
+        canvas.style.border = "30px solid gray";
+        canvas.style.margin = "50px auto";
+        canvas.style.display = "block";
+        canvas.style.backgroundColor = "#ddd";
+        document.body.appendChild(canvas);
+
+        ctx = canvas.getContext('2d');
+        dessinerMenu();
+    }
+
+    function dessinerMenu() {
+        ctx.save();
+        ctx.font = "bold 30px sans-serif";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        var centreX = largeurCanvas / 2;
+        var centreY = hauteurCanvas / 2;
+        ctx.fillText("Appuyez sur 'Espace' pour commencer", centreX, centreY);
+        ctx.restore();
+    }
+
+    function rafraichirCanvas() {
+        serpent.avancer();
+        if (serpent.checkCollision()) {
+            jeuFini();
+        } else {
+            if (serpent.mangePomme(pomme)) {
+                score++;
+                serpent.aMangePomme = true;
+                do {
+                    pomme.setNouvellePosition();
+                } while (pomme.estSurSerpent(serpent));
+            }
+            ctx.clearRect(0, 0, largeurCanvas, hauteurCanvas);
+            dessinerScore();
+            serpent.dessiner();
+            pomme.dessiner();
+            timeout = setTimeout(rafraichirCanvas, delai);
+        }
+    }
+
+    function jeuFini() {
+        ctx.save();
+        ctx.font = "bold 70px sans-serif";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.strokeStyle = "White";
+        ctx.lineWidth = 5;
+        var centreX = largeurCanvas / 2;
+        var centreY = hauteurCanvas / 2;
+        ctx.strokeText("Game Over", centreX, centreY - 100);
+        ctx.fillText("Game Over", centreX, centreY - 100);
+        ctx.font = "bold 30px sans-serif";
+        ctx.strokeText("Appuyez sur 'Espace' pour rejouer", centreX, centreY);
+        ctx.fillText("Appuyez sur 'Espace' pour rejouer", centreX, centreY);
+        ctx.restore();
+    }
+
+    function recommencer() {
+        serpent = new Serpent([[6, 4], [5, 4], [4, 4]], "droite");
+        pomme = new Pomme([10, 10]);
+        score = 0;
+        clearTimeout(timeout);
+        jeuDemarre = true;
+        rafraichirCanvas();
+    }
+
+    function dessinerScore() {
+        ctx.save();
+        ctx.font = "bold 50px sans-serif";
+        ctx.fillStyle = "gray";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        var centreX = largeurCanvas / 2;
+        var centreY = hauteurCanvas / 2 - 100;
+        ctx.fillText("Score: " + score, centreX, centreY);
+        ctx.restore();
+    }
+
+    function dessinerBloc(ctx, position) {
+        var x = position[0] * tailleBloc;
+        var y = position[1] * tailleBloc;
+        ctx.fillRect(x, y, tailleBloc, tailleBloc);
+    }
+
+    function Serpent(corps, direction) {
+        this.corps = corps;
+        this.direction = direction;
+        this.aMangePomme = false;
+
+        this.dessiner = function() {
+            ctx.save();
+            ctx.fillStyle = "#0a77f5";
+            for (var i = 0; i < this.corps.length; i++) {
+                dessinerBloc(ctx, this.corps[i]);
+            }
+            ctx.restore();
+        };
+
+        this.avancer = function() {
+            var prochainePosition = this.corps[0].slice();
+            switch (this.direction) {
+                case "gauche":
+                    prochainePosition[0] -= 1;
+                    break;
+                case "droite":
+                    prochainePosition[0] += 1;
+                    break;
+                case "bas":
+                    prochainePosition[1] += 1;
+                    break;
+                case "haut":
+                    prochainePosition[1] -= 1;
+                    break;
+                default:
+                    throw new Error("Direction invalide");
+            }
+            this.corps.unshift(prochainePosition);
+            if (!this.aMangePomme) {
+                this.corps.pop();
+            } else {
+                this.aMangePomme = false;
+            }
+        };
+
+        this.setDirection = function(nouvelleDirection) {
+            var directionsAutorisees;
+            switch (this.direction) {
+                case "gauche":
+                case "droite":
+                    directionsAutorisees = ["haut", "bas"];
+                    break;
+                case "bas":
+                case "haut":
+                    directionsAutorisees = ["gauche", "droite"];
+                    break;
+                default:
+                    throw new Error("Direction invalide");
+            }
+            if (directionsAutorisees.indexOf(nouvelleDirection) > -1) {
+                this.direction = nouvelleDirection;
+            }
+        };
+
+        this.checkCollision = function() {
+            var collisionMur = false;
+            var collisionSerpent = false;
+            var tete = this.corps[0];
+            var reste = this.corps.slice(1);
+            var serpentX = tete[0];
+            var serpentY = tete[1];
+            var minX = 0;
+            var minY = 0;
+            var maxX = largeurEnBlocs - 1;
+            var maxY = hauteurEnBlocs - 1;
+            var pasEntreMursHorizontaux = serpentX < minX || serpentX >= largeurEnBlocs;
+            var pasEntreMursVerticaux = serpentY < minY || serpentY >= hauteurEnBlocs;
+
+            if (pasEntreMursHorizontaux || pasEntreMursVerticaux) {
+                collisionMur = true;
+            }
+            for (var i = 0; i < reste.length; i++) {
+                if (serpentX === reste[i][0] && serpentY === reste[i][1]) {
+                    collisionSerpent = true;
+                }
+            }
+            return collisionMur || collisionSerpent;
+        };
+
+        this.mangePomme = function(pommeAManger) {
+            var tete = this.corps[0];
+            return tete[0] === pommeAManger.position[0] && tete[1] === pommeAManger.position[1];
+        };
+    }
+
+    function Pomme(position) {
+        this.position = position;
+
+        this.dessiner = function() {
+            ctx.save();
+            ctx.fillStyle = "#33cc33";
+            ctx.beginPath();
+            var rayon = tailleBloc / 2;
+            var x = this.position[0] * tailleBloc + rayon;
+            var y = this.position[1] * tailleBloc + rayon;
+            ctx.arc(x, y, rayon, 0, Math.PI * 2, true);
+            ctx.fill();
+            ctx.restore();
+        };
+
+        this.setNouvellePosition = function() {
+            var nouvelleX = Math.round(Math.random() * (largeurEnBlocs - 1));
+            var nouvelleY = Math.round(Math.random() * (hauteurEnBlocs - 1));
+            this.position = [nouvelleX, nouvelleY];
+        };
+
+        this.estSurSerpent = function(serpentAChecker) {
+            for (var i = 0; i < serpentAChecker.corps.length; i++) {
+                if (this.position[0] === serpentAChecker.corps[i][0] && this.position[1] === serpentAChecker.corps[i][1]) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    document.onkeydown = function(e) {
+        var touche = e.keyCode;
+        var nouvelleDirection;
+        if (!jeuDemarre && touche === 32) { // Espace pour démarrer le jeu
+            jeuDemarre = true;
+            recommencer();
+        } else if (jeuDemarre) {
+            switch (touche) {
+                case 37:
+                    nouvelleDirection = "gauche";
+                    break;
+                case 38:
+                    nouvelleDirection = "haut";
+                    break;
+                case 39:
+                    nouvelleDirection = "droite";
+                    break;
+                case 40:
+                    nouvelleDirection = "bas";
+                    break;
+                case 32: // Espace pour recommencer
+                    recommencer();
+                    return;
+                default:
+                    return;
+            }
+            serpent.setDirection(nouvelleDirection);
+        }
+    };
+
+    // Initialiser le jeu lorsque la page est chargée
+    init();
+};
