@@ -68,8 +68,8 @@ window.onload = function() {
         ctx.lineWidth = 5;
         var centreX = largeurCanvas / 2;
         var centreY = hauteurCanvas / 2;
-        ctx.strokeText("Game Over", centreX, centreY - 100);
-        ctx.fillText("Game Over", centreX, centreY - 100);
+        ctx.strokeText("Game Over", centreX, centreY - 170);
+        ctx.fillText("Game Over", centreX, centreY - 170);
         ctx.font = "bold 30px sans-serif";
         ctx.strokeText("Appuyez sur 'Espace' pour rejouer", centreX, centreY);
         ctx.fillText("Appuyez sur 'Espace' pour rejouer", centreX, centreY);
